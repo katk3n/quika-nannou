@@ -1,0 +1,12 @@
+[package]
+name = "quika"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+nannou = "0.18"
+nannou_audio = "0.18"
+ringbuf = "0.2.2"
+spectrum-analyzer = "1.2.6"
