@@ -2,11 +2,9 @@ use nannou::prelude::*;
 use nannou_audio as audio;
 use nannou_audio::Buffer;
 use ringbuf::{Consumer, Producer, RingBuffer};
-use spectrum_analyzer::windows::hann_window;
-use spectrum_analyzer::{samples_fft_to_spectrum, Frequency, FrequencyLimit, FrequencyValue};
-use spectrum_analyzer::{scaling::*, FrequencySpectrum};
 
-const SAMPLING_RATE: u32 = 44100;
+pub mod spectrum;
+
 const MIN_FREQUENCY: f32 = 27.0;
 const MAX_FREQUENCY: f32 = 2000.0;
 const NUM_SAMPLES: usize = 2048;
@@ -16,9 +14,9 @@ fn main() {
 }
 
 struct Model {
-    stream: audio::Stream<InputModel>,
+    _stream: audio::Stream<InputModel>,
     consumer: Consumer<f32>,
-    spectrum: Vec<(Frequency, FrequencyValue)>,
+    spectrum: Vec<(f32, f32)>, // (frequency, amplitude)
 }
 
 struct InputModel {
@@ -54,7 +52,7 @@ fn model(app: &App) -> Model {
     let spectrum = vec![];
 
     Model {
-        stream,
+        _stream: stream,
         consumer: cons,
         spectrum,
     }
@@ -65,17 +63,6 @@ fn pass_in(model: &mut InputModel, buffer: &Buffer) {
         // frame has 2 channels (stereo)
         model.producer.push(frame[0]).ok();
     }
-}
-
-fn calc_spectrum(samples: &Vec<f32>) -> FrequencySpectrum {
-    let hann_window = hann_window(samples.as_slice());
-    samples_fft_to_spectrum(
-        &hann_window,
-        SAMPLING_RATE,
-        FrequencyLimit::Range(MIN_FREQUENCY, MAX_FREQUENCY),
-        Some(&divide_by_N_sqrt),
-    )
-    .unwrap()
 }
 
 fn update(_app: &App, model: &mut Model, _update: Update) {
@@ -89,9 +76,7 @@ fn update(_app: &App, model: &mut Model, _update: Update) {
         samples.push(sample);
     }
 
-    let spectrum = calc_spectrum(&samples);
-
-    model.spectrum = spectrum.data().to_vec();
+    model.spectrum = spectrum::calc_spectrum(&samples, MIN_FREQUENCY, MAX_FREQUENCY);
 }
 
 fn view(app: &App, model: &Model, frame: Frame) {
@@ -102,10 +87,10 @@ fn view(app: &App, model: &Model, frame: Frame) {
     let max_x = boundary.right();
 
     for (fr, amp) in model.spectrum.iter() {
-        let x = map_range(fr.val(), MIN_FREQUENCY, MAX_FREQUENCY, min_x, max_x);
-        let height = amp.val() * 1000.0;
+        let x = map_range(*fr, MIN_FREQUENCY, MAX_FREQUENCY, min_x, max_x);
+        let height = amp * 1000.0;
         let width = 10.0;
-        let hue = map_range(fr.val(), MIN_FREQUENCY, MAX_FREQUENCY, 0.0, 1.0);
+        let hue = map_range(*fr, MIN_FREQUENCY, MAX_FREQUENCY, 0.0, 1.0);
         draw.ellipse()
             .color(hsla(hue, 1.0, 0.5, 0.2))
             .w_h(width, height)
