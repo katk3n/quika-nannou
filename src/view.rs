@@ -1,6 +1,6 @@
 use crate::model::Model;
+use crate::scene::simple_spectrum::SimpleSpectrum;
 use crate::scene::Scene;
-use crate::scene::SimpleSpectrum;
 use nannou::prelude::*;
 
 pub fn view(app: &App, model: &Model, frame: Frame) {
