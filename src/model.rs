@@ -3,6 +3,9 @@ use nannou_audio as audio;
 use nannou_audio::Buffer;
 use ringbuf::{Consumer, Producer, RingBuffer};
 
+use crate::scene::circular_particles::CircularParticles;
+use crate::scene::simple_spectrum::SimpleSpectrum;
+use crate::scene::Scene;
 use crate::spectrum;
 use crate::view::view;
 
@@ -16,6 +19,8 @@ pub struct Model {
     pub min_frequency: f32,
     pub max_frequency: f32,
     pub spectrum: Vec<(f32, f32)>, // (frequency, amplitude)
+    pub scenes: Vec<Box<dyn Scene>>,
+    pub current_scene: usize,
 }
 
 struct InputModel {
@@ -24,7 +29,11 @@ struct InputModel {
 
 pub fn model(app: &App) -> Model {
     // Create a window to receive key pressed events.
-    app.new_window().view(view).build().unwrap();
+    app.new_window()
+        .view(view)
+        .key_pressed(key_pressed)
+        .build()
+        .unwrap();
 
     // Initialise the audio host so we can spawn an audio stream.
     let audio_host = audio::Host::new();
@@ -50,12 +59,19 @@ pub fn model(app: &App) -> Model {
 
     let spectrum = vec![];
 
+    let scenes: Vec<Box<dyn Scene>> = vec![
+        Box::new(CircularParticles::new(100)),
+        Box::new(SimpleSpectrum {}),
+    ];
+
     Model {
         _stream: stream,
         consumer: cons,
         min_frequency: MIN_FREQUENCY,
         max_frequency: MAX_FREQUENCY,
         spectrum,
+        scenes,
+        current_scene: 0,
     }
 }
 
@@ -66,7 +82,7 @@ fn pass_in(model: &mut InputModel, buffer: &Buffer) {
     }
 }
 
-pub fn update(_app: &App, model: &mut Model, _update: Update) {
+pub fn update(app: &App, model: &mut Model, update: Update) {
     let mut samples = vec![];
     if model.consumer.len() < NUM_SAMPLES {
         return;
@@ -78,4 +94,20 @@ pub fn update(_app: &App, model: &mut Model, _update: Update) {
     }
 
     model.spectrum = spectrum::calc_spectrum(&samples, model.min_frequency, model.max_frequency);
+
+    for scene in &mut model.scenes {
+        scene.update(app, update);
+    }
+}
+
+fn key_pressed(_app: &App, model: &mut Model, key: Key) {
+    match key {
+        Key::Key0 => {
+            model.current_scene = 0;
+        }
+        Key::Key1 => {
+            model.current_scene = 1;
+        }
+        _other_key => {}
+    }
 }

@@ -24,4 +24,6 @@ impl Scene for SimpleSpectrum {
         }
         draw.to_frame(app, &frame).unwrap();
     }
+
+    fn update(&mut self, _app: &App, _update: Update) {}
 }
