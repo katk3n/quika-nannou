@@ -1,0 +1,36 @@
+name: build
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: x86_64-apple-darwin
+          override: true
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target=x86_64-apple-darwin
+      - name: Package for macOS
+        run: |
+          zip --junk-paths quika-x86_64-apple-darwin target/x86_64-apple-darwin/release/quika
+      - uses: actions/upload-artifact@v2
+        with:
+          name: quika-x86_64-apple-darwin
+          path: quika-x86_64-apple-darwin.zip
