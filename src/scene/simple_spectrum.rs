@@ -12,7 +12,7 @@ impl Scene for SimpleSpectrum {
         let min_x = boundary.left();
         let max_x = boundary.right();
 
-        for (fr, amp) in model.spectrum.iter() {
+        for (fr, amp) in model.spectrum.frequencies.iter() {
             let x = map_range(*fr, model.min_frequency, model.max_frequency, min_x, max_x);
             let height = amp * 1000.0;
             let width = 10.0;

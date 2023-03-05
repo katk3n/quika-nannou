@@ -44,7 +44,7 @@ impl CircularParticles {
 }
 
 impl Scene for CircularParticles {
-    fn view(&self, app: &App, _model: &Model, frame: Frame) {
+    fn view(&self, app: &App, model: &Model, frame: Frame) {
         let draw = app.draw();
         draw.blend(BLEND_ADD);
 
@@ -53,11 +53,20 @@ impl Scene for CircularParticles {
         draw.rect().wh(window.wh()).rgba(0.0, 0.0, 0.0, 0.2);
         draw.to_frame(app, &frame).unwrap();
 
-        for particle in &self.particles {
+        let num_particles = self.particles.len();
+        let max_index = model.spectrum.max_frequency as usize % num_particles;
+        let max_amp = model.spectrum.max_amplitude;
+
+        for (i, particle) in self.particles.iter().enumerate() {
             let point = pt2(particle.theta.cos(), particle.theta.sin()) * particle.distance;
+            let radius = if i == max_index {
+                particle.radius + max_amp * 100.0
+            } else {
+                particle.radius
+            };
             draw.ellipse()
                 .color(hsla(0.0, 0.0, particle.lightness, 0.4))
-                .w_h(particle.radius, particle.radius)
+                .w_h(radius, radius)
                 .x_y(point.x, point.y);
         }
 

@@ -6,7 +6,7 @@ use ringbuf::{Consumer, Producer, RingBuffer};
 use crate::scene::circular_particles::CircularParticles;
 use crate::scene::simple_spectrum::SimpleSpectrum;
 use crate::scene::Scene;
-use crate::spectrum;
+use crate::spectrum::Spectrum;
 use crate::view::view;
 
 const MIN_FREQUENCY: f32 = 27.0;
@@ -18,7 +18,7 @@ pub struct Model {
     consumer: Consumer<f32>,
     pub min_frequency: f32,
     pub max_frequency: f32,
-    pub spectrum: Vec<(f32, f32)>, // (frequency, amplitude)
+    pub spectrum: Spectrum,
     pub scenes: Vec<Box<dyn Scene>>,
     pub current_scene: usize,
 }
@@ -57,7 +57,7 @@ pub fn model(app: &App) -> Model {
 
     stream.play().unwrap();
 
-    let spectrum = vec![];
+    let spectrum = Spectrum::default();
 
     let scenes: Vec<Box<dyn Scene>> = vec![
         Box::new(CircularParticles::new(100)),
@@ -93,7 +93,7 @@ pub fn update(app: &App, model: &mut Model, update: Update) {
         samples.push(sample);
     }
 
-    model.spectrum = spectrum::calc_spectrum(&samples, model.min_frequency, model.max_frequency);
+    model.spectrum = Spectrum::analyze(&samples, model.min_frequency, model.max_frequency);
 
     for scene in &mut model.scenes {
         scene.update(app, update);
