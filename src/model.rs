@@ -28,7 +28,6 @@ struct InputModel {
 }
 
 pub fn model(app: &App) -> Model {
-    // Create a window to receive key pressed events.
     app.new_window()
         .view(view)
         .key_pressed(key_pressed)
@@ -100,13 +99,17 @@ pub fn update(app: &App, model: &mut Model, update: Update) {
     }
 }
 
-fn key_pressed(_app: &App, model: &mut Model, key: Key) {
+fn key_pressed(app: &App, model: &mut Model, key: Key) {
     match key {
         Key::Key0 => {
             model.current_scene = 0;
         }
         Key::Key1 => {
             model.current_scene = 1;
+        }
+        Key::F11 => {
+            let is_fullscreen = app.main_window().is_fullscreen();
+            app.main_window().set_fullscreen(!is_fullscreen);
         }
         _other_key => {}
     }
