@@ -41,17 +41,29 @@ jobs:
           command: build
           args: --release --target=${{ matrix.target }}
 
-      - name: Package for macOS
-        if: matrix.target == 'x86_64-apple-darwin'
-        run: |
-          zip --junk-paths quika-${{ matrix.target }} target/${{ matrix.target }}/release/quika
+      #- name: Package for macOS
+      #  if: matrix.target == 'x86_64-apple-darwin'
+      #  run: |
+      #    zip --junk-paths quika-${{ matrix.target }} target/${{ matrix.target }}/release/quika
 
-      - name: Package for windows
-        if: matrix.target == 'x86_64-pc-windows-msvc'
-        run: |
-          powershell Compress-Archive -Path target/${{ matrix.target }}/release/quika.exe -DestinationPath quika-${{ matrix.target }}.zip
+      #- name: Package for windows
+      #  if: matrix.target == 'x86_64-pc-windows-msvc'
+      #  run: |
+      #    powershell Compress-Archive -Path target/${{ matrix.target }}/release/quika.exe -DestinationPath quika-${{ matrix.target }}.zip
+
+      #- uses: actions/upload-artifact@v2
+      #  with:
+      #    name: quika-${{ matrix.target }}
+      #    path: quika-${{ matrix.target }}.zip
 
       - uses: actions/upload-artifact@v2
+        if: matrix.target == 'x86_64-apple-darwin'
         with:
           name: quika-${{ matrix.target }}
-          path: quika-${{ matrix.target }}.zip
+          path: target/${{ matrix.target }}/release/quika
+
+      - uses: actions/upload-artifact@v2
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        with:
+          name: quika-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/quika.exe
